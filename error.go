@@ -17,7 +17,7 @@ func New(message string) CustomError {
 }
 
 func (e *customError) Error() string {
-	if e == nil {
+	if e == nil || e.err == nil {
 		return ""
 	}
 	return e.err.Error()
@@ -31,11 +31,17 @@ func (e *customError) Cause() error {
 }
 
 func (e *customError) With(key string, data any) CustomError {
+	if e == nil || e.err == nil {
+		return nil
+	}
 	e.data[key] = data
 	return e
 }
 
 func (e *customError) WithData(data map[string]any) CustomError {
+	if e == nil || e.err == nil {
+		return nil
+	}
 	for k, v := range data {
 		e.data[k] = v
 	}
@@ -43,7 +49,7 @@ func (e *customError) WithData(data map[string]any) CustomError {
 }
 
 func (e *customError) StackTrace() stack {
-	if e == nil {
+	if e == nil || e.err == nil {
 		return nil
 	}
 	return e.stack
