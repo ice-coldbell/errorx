@@ -1,5 +1,9 @@
 package errorx
 
+import (
+	"errors"
+)
+
 type customErrors []CustomError
 
 func (e customErrors) Error() string {
@@ -14,9 +18,27 @@ func (e customErrors) Error() string {
 }
 
 func (e customErrors) Unwrap() []error {
-	errors := make([]error, 0, len(e))
+	errs := make([]error, 0, len(e))
 	for i := range e {
-		errors = append(errors, e[i].Unwrap())
+		errs = append(errs, e[i])
 	}
-	return errors
+	return errs
+}
+
+func (e customErrors) Is(target error) bool {
+	targetMultiError, ok := target.(customErrors)
+	if !ok {
+		return false
+	}
+
+	if len(e) != len(targetMultiError) {
+		return false
+	}
+
+	for idx := range e.Unwrap() {
+		if !errors.Is(e[idx].Unwrap(), targetMultiError[idx].Unwrap()) {
+			return false
+		}
+	}
+	return true
 }

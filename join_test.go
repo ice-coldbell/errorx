@@ -2,7 +2,6 @@ package errorx
 
 import (
 	"errors"
-	"reflect"
 	"testing"
 )
 
@@ -24,19 +23,19 @@ func TestJoin(t *testing.T) {
 
 	for _, test := range []struct {
 		errs []error
-		want []error
+		want customErrors
 	}{{
 		errs: []error{err1},
-		want: []error{err1},
+		want: customErrors{err1},
 	}, {
 		errs: []error{err1, err2},
-		want: []error{err1, err2},
+		want: customErrors{err1, err2},
 	}, {
 		errs: []error{err1, nil, err2},
-		want: []error{err1, err2},
+		want: customErrors{err1, err2},
 	}} {
-		got := Join(test.errs...).Unwrap()
-		if !reflect.DeepEqual(got, test.want) {
+		got := Join(test.errs...)
+		if !Is(got, test.want) {
 			t.Errorf("Join(%v) = %v; want %v", test.errs, got, test.want)
 		}
 		if len(got) != cap(got) {

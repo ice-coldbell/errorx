@@ -8,4 +8,12 @@ type CustomError interface {
 	Unwrap() error
 }
 
+type CustomErrors interface {
+	error
+	Is(error) bool
+	Unwrap() []error
+}
+
 var _ CustomError = &customError{}
+
+var _ CustomErrors = customErrors{}
