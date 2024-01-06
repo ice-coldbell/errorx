@@ -1,6 +1,9 @@
 package errorx
 
-import "errors"
+import (
+	"errors"
+	"log/slog"
+)
 
 type customError struct {
 	err   error
@@ -48,11 +51,12 @@ func (e *customError) WithData(data map[string]any) CustomError {
 	return e
 }
 
-func (e *customError) StackTrace() stack {
+// For sentry-go extract stacktrace
+func (e *customError) StackTrace() []uintptr {
 	if e == nil || e.err == nil {
 		return nil
 	}
-	return e.stack
+	return e.stack.StackTrace()
 }
 
 func (e *customError) Unwrap() error {
@@ -60,4 +64,14 @@ func (e *customError) Unwrap() error {
 		return nil
 	}
 	return e.err
+}
+
+func (e *customError) LogValue() slog.Value {
+	attr := []slog.Attr{
+		slog.String("message", e.Error()),
+	}
+	for k, v := range e.data {
+		attr = append(attr, slog.Any(k, v))
+	}
+	return slog.GroupValue(attr...)
 }

@@ -2,6 +2,8 @@ package errorx
 
 import (
 	"errors"
+	"log/slog"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -301,13 +303,13 @@ func Test_customError_StackTrace(t *testing.T) {
 	tests := []struct {
 		name       string
 		fields     fields
-		want       stack
+		want       []uintptr
 		isNilError bool
 	}{
 		{
 			name:       "common case",
 			fields:     fields{err: errors.New("common error"), stack: []frame{globalTestFrame}},
-			want:       []frame{globalTestFrame},
+			want:       []uintptr{globalTestPC},
 			isNilError: false,
 		},
 		{
@@ -385,4 +387,19 @@ func Test_customError_Unwrap(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Example_customError_LogValue() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == "time" || a.Key == "level" {
+				return slog.Attr{}
+			}
+			return a
+		},
+	})))
+	slog.Info("test message", slog.Any("error", New("test").With("test key", "test value")))
+
+	// Output:
+	// msg="test message" error.message=test "error.test key"="test value"
 }

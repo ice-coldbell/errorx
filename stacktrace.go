@@ -93,6 +93,14 @@ func (s stack) formatSlice(st fmt.State, verb rune) {
 	io.WriteString(st, "]")
 }
 
+func (s stack) StackTrace() []uintptr {
+	pcs := make([]uintptr, len(s))
+	for i := 0; i < len(s); i++ {
+		pcs[i] = s[i].pc
+	}
+	return pcs
+}
+
 // for test injection
 var runtimeCallers = runtime.Callers
 
